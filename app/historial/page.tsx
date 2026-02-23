@@ -32,7 +32,7 @@ export default function HistorialPage() {
 
     if (!error && data) {
       setEntries(data as WodHistoryEntry[]);
-      const ubis = [...new Set(data.map((e: any) => e.ubicacion))];
+      const ubis = Array.from(new Set(data.map((e: any) => e.ubicacion))) as string[];
       setUbicaciones(ubis);
     }
     setLoading(false);
