@@ -61,8 +61,9 @@ export const COLOR_MAP: Record<SemaforoColor, { text: string; fill: string }> = 
 
 export const UBICACIONES_PREDEFINIDAS = [
   "The Island Box",
-  "Casa (sótano)",
-  "Gimnasio",
-  "Aire libre",
+  "Enjoy",
+  "Blue Gorilla",
+  "Hospital de la Línea",
+  "Sótano de Casa",
   "Otro",
 ];
