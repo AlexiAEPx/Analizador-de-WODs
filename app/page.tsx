@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { WodAnalisis, UBICACIONES_PREDEFINIDAS } from "@/lib/types";
 import WodResult from "@/components/WodResult";
+import WodChat from "@/components/WodChat";
 
 export default function Home() {
   const [wodText, setWodText] = useState("");
@@ -239,6 +240,9 @@ export default function Home() {
 
       {/* RESULT */}
       {result && <WodResult result={result} />}
+
+      {/* CHAT */}
+      {result && <WodChat wodAnalisis={result} />}
     </div>
   );
 }
