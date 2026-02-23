@@ -63,10 +63,7 @@ export const UBICACIONES_PREDEFINIDAS = [
   "The Island Box",
   "Enjoy",
   "Blue Gorilla",
-  "Hospital",
-  "La Línea",
-  "Casa (sótano)",
-  "Gimnasio",
-  "Aire libre",
+  "Hospital de la Línea",
+  "Sótano de Casa",
   "Otro",
 ];
