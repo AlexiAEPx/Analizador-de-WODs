@@ -1,0 +1,244 @@
+"use client";
+
+import { useState, useCallback, useRef } from "react";
+import { supabase } from "@/lib/supabase";
+import { WodAnalisis, UBICACIONES_PREDEFINIDAS } from "@/lib/types";
+import WodResult from "@/components/WodResult";
+
+export default function Home() {
+  const [wodText, setWodText] = useState("");
+  const [modo, setModo] = useState<"retrospectivo" | "prospectivo">("retrospectivo");
+  const [ubicacion, setUbicacion] = useState("The Island Box");
+  const [ubicacionCustom, setUbicacionCustom] = useState("");
+  const [imageData, setImageData] = useState<{ base64: string; mediaType: string } | null>(null);
+  const [imageName, setImageName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<WodAnalisis | null>(null);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImage = useCallback((file: File) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    setImageName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = (reader.result as string).split(",")[1];
+      setImageData({ base64, mediaType: file.type });
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      const file = e.dataTransfer?.files?.[0];
+      if (file) handleImage(file);
+    },
+    [handleImage]
+  );
+
+  const analyze = async () => {
+    if (!wodText.trim() && !imageData) return;
+    setLoading(true);
+    setError("");
+    setResult(null);
+    setSaved(false);
+
+    try {
+      const resp = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          wodText: wodText.trim(),
+          modo,
+          imageBase64: imageData?.base64 || null,
+          imageMediaType: imageData?.mediaType || null,
+        }),
+      });
+
+      if (!resp.ok) throw new Error("Error en el análisis");
+
+      const data: WodAnalisis = await resp.json();
+      setResult(data);
+
+      // Guardar en Supabase
+      const ubi = ubicacion === "Otro" ? ubicacionCustom || "Otro" : ubicacion;
+      const { error: dbError } = await supabase.from("wod_history").insert({
+        wod_text: wodText.trim() || "[Imagen de pizarra]",
+        ubicacion: ubi,
+        modo,
+        analisis: data,
+        tipo_wod: data.tipo_wod,
+        intensidad: data.intensidad,
+      });
+
+      if (dbError) {
+        console.error("Error saving:", dbError);
+      } else {
+        setSaved(true);
+      }
+    } catch (err: any) {
+      setError("Error al analizar el WOD. Inténtalo de nuevo.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-5">
+      {/* INPUT */}
+      <div className="glass !p-8 animate-in">
+        <div className="text-center mb-6">
+          <div className="text-4xl mb-2">🏋️</div>
+          <h1
+            className="text-[1.1em] font-semibold tracking-[4px] uppercase"
+            style={{ color: "rgba(255,255,255,0.9)" }}
+          >
+            Análisis de WOD
+          </h1>
+          <p
+            className="text-[0.82em] mt-1"
+            style={{ color: "rgba(255,255,255,0.35)" }}
+          >
+            Escribe el WOD o sube una foto de la pizarra
+          </p>
+        </div>
+
+        {/* Textarea */}
+        <textarea
+          value={wodText}
+          onChange={(e) => setWodText(e.target.value)}
+          placeholder="Describe el WOD aquí... ej: 5 rounds de 10 thrusters @ 40kg + 15 pull-ups"
+          className="w-full min-h-[120px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-xl p-4 text-[rgba(255,255,255,0.85)] text-[0.9em] font-light resize-y leading-relaxed placeholder:text-[rgba(255,255,255,0.2)]"
+        />
+
+        {/* Image drop */}
+        <div
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+          onClick={() => fileInputRef.current?.click()}
+          className="mt-3 p-4 rounded-xl border border-dashed border-[rgba(255,255,255,0.1)] text-center cursor-pointer text-[0.82em] hover:bg-[rgba(255,255,255,0.02)] transition-colors"
+          style={{
+            background: imageData ? "rgba(92,216,92,0.04)" : "transparent",
+            color: "rgba(255,255,255,0.35)",
+          }}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => e.target.files?.[0] && handleImage(e.target.files[0])}
+          />
+          {imageData ? (
+            <span className="text-sem-verde">
+              📷 {imageName}{" "}
+              <span className="opacity-60">— clic para cambiar</span>
+            </span>
+          ) : (
+            "📷 Arrastra una foto de la pizarra aquí o haz clic para subir"
+          )}
+        </div>
+
+        {/* Ubicación + Modo */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+          {/* Ubicación */}
+          <div>
+            <label
+              className="block text-[0.7em] font-medium tracking-[2px] uppercase mb-2"
+              style={{ color: "rgba(255,255,255,0.25)" }}
+            >
+              📍 Ubicación
+            </label>
+            <select
+              value={ubicacion}
+              onChange={(e) => setUbicacion(e.target.value)}
+              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl py-2.5 px-4 text-[0.85em] text-[rgba(255,255,255,0.7)] appearance-none cursor-pointer"
+            >
+              {UBICACIONES_PREDEFINIDAS.map((u) => (
+                <option key={u} value={u} className="bg-[#14141c]">
+                  {u}
+                </option>
+              ))}
+            </select>
+            {ubicacion === "Otro" && (
+              <input
+                type="text"
+                value={ubicacionCustom}
+                onChange={(e) => setUbicacionCustom(e.target.value)}
+                placeholder="¿Dónde?"
+                className="w-full mt-2 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-xl py-2 px-4 text-[0.85em] text-[rgba(255,255,255,0.7)] placeholder:text-[rgba(255,255,255,0.2)]"
+              />
+            )}
+          </div>
+
+          {/* Modo */}
+          <div>
+            <label
+              className="block text-[0.7em] font-medium tracking-[2px] uppercase mb-2"
+              style={{ color: "rgba(255,255,255,0.25)" }}
+            >
+              ⏱ Modo
+            </label>
+            <div className="flex rounded-xl border border-[rgba(255,255,255,0.06)] overflow-hidden bg-[rgba(255,255,255,0.03)]">
+              {(["retrospectivo", "prospectivo"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setModo(m)}
+                  className="flex-1 py-2.5 text-[0.8em] font-medium transition-all"
+                  style={{
+                    background:
+                      modo === m ? "rgba(255,92,92,0.12)" : "transparent",
+                    color:
+                      modo === m ? "#ff5c5c" : "rgba(255,255,255,0.35)",
+                  }}
+                >
+                  {m === "retrospectivo" ? "✅ Ya hecho" : "🔜 Por hacer"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Botón analizar */}
+        <button
+          onClick={analyze}
+          disabled={loading || (!wodText.trim() && !imageData)}
+          className="w-full mt-5 py-3.5 rounded-xl font-semibold text-[0.88em] tracking-[1px] uppercase transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{
+            background: loading
+              ? "rgba(255,255,255,0.04)"
+              : "linear-gradient(135deg, rgba(255,92,92,0.18), rgba(255,92,92,0.08))",
+            color: loading ? "rgba(255,255,255,0.3)" : "#ff5c5c",
+            border: "1px solid rgba(255,92,92,0.15)",
+          }}
+        >
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="loader-dot inline-block w-2 h-2 rounded-full bg-sem-rojo" />
+              <span className="loader-dot inline-block w-2 h-2 rounded-full bg-sem-rojo" />
+              <span className="loader-dot inline-block w-2 h-2 rounded-full bg-sem-rojo" />
+              <span className="ml-2">Analizando...</span>
+            </span>
+          ) : (
+            "Analizar WOD"
+          )}
+        </button>
+
+        {error && (
+          <p className="mt-3 text-sem-rojo text-[0.85em]">{error}</p>
+        )}
+        {saved && (
+          <p className="mt-3 text-sem-verde text-[0.82em] text-center opacity-70">
+            ✓ Guardado en historial
+          </p>
+        )}
+      </div>
+
+      {/* RESULT */}
+      {result && <WodResult result={result} />}
+    </div>
+  );
+}
