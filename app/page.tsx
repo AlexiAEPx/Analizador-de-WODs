@@ -11,6 +11,7 @@ import UserSelector from "@/components/UserSelector";
 export default function Home() {
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [wodText, setWodText] = useState("");
+  const [nombreWod, setNombreWod] = useState("");
   const [modo, setModo] = useState<"retrospectivo" | "prospectivo">("retrospectivo");
   const [ubicacion, setUbicacion] = useState("The Island Box");
   const [ubicacionCustom, setUbicacionCustom] = useState("");
@@ -86,6 +87,7 @@ export default function Home() {
       // Guardar en Supabase
       const ubi = ubicacion === "Otro" ? ubicacionCustom || "Otro" : ubicacion;
       const { error: dbError } = await supabase.from("wod_history").insert({
+        nombre_wod: nombreWod.trim() || null,
         wod_text: wodText.trim() || "[Imagen de pizarra]",
         ubicacion: ubi,
         modo,
@@ -224,6 +226,28 @@ export default function Home() {
           ) : (
             "📷 Arrastra una foto de la pizarra aquí o haz clic para subir"
           )}
+        </div>
+
+        {/* Nombre del WOD */}
+        <div className="mt-4">
+          <label
+            className="block text-[0.7em] font-medium tracking-[2px] uppercase mb-2"
+            style={{ color: "rgba(var(--base-rgb), 0.25)" }}
+          >
+            🏷 Nombre del WOD (opcional)
+          </label>
+          <input
+            type="text"
+            value={nombreWod}
+            onChange={(e) => setNombreWod(e.target.value)}
+            placeholder='Ej: "Fran", "Murph", "Lunes de piernas"...'
+            className="w-full rounded-xl py-2.5 px-4 text-[0.85em]"
+            style={{
+              backgroundColor: "rgba(var(--base-rgb), 0.03)",
+              border: "1px solid rgba(var(--base-rgb), 0.08)",
+              color: "rgba(var(--base-rgb), 0.85)",
+            }}
+          />
         </div>
 
         {/* Ubicación + Modo */}
