@@ -1,8 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
 import { UserProfile } from "@/lib/types";
+
+const PROFILES_KEY = "wod_user_profiles";
+
+function loadProfilesFromStorage(): UserProfile[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(PROFILES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveProfilesToStorage(profiles: UserProfile[]) {
+  localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+}
 
 interface UserSelectorProps {
   selectedUser: UserProfile | null;
@@ -37,19 +52,12 @@ export default function UserSelector({ selectedUser, onUserChange }: UserSelecto
     loadUsers();
   }, []);
 
-  const loadUsers = async () => {
+  const loadUsers = () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .order("created_at", { ascending: true });
-
-    if (!error && data) {
-      setUsers(data as UserProfile[]);
-      // Auto-select first user if none selected
-      if (!selectedUser && data.length > 0) {
-        onUserChange(data[0] as UserProfile);
-      }
+    const profiles = loadProfilesFromStorage();
+    setUsers(profiles);
+    if (!selectedUser && profiles.length > 0) {
+      onUserChange(profiles[0]);
     }
     setLoading(false);
   };
@@ -74,7 +82,7 @@ export default function UserSelector({ selectedUser, onUserChange }: UserSelecto
     setFormError("");
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     setFormError("");
     if (!nombre.trim()) {
       setFormError("El nombre es obligatorio");
@@ -99,27 +107,20 @@ export default function UserSelector({ selectedUser, onUserChange }: UserSelecto
     }
 
     setSaving(true);
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .insert({
-        nombre: nombre.trim(),
-        genero,
-        edad: edadNum,
-        altura_cm: alturaNum,
-        peso_kg: pesoNum,
-        experiencia_meses: expTotal,
-      })
-      .select()
-      .single();
+    const newUser: UserProfile = {
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      nombre: nombre.trim(),
+      genero,
+      edad: edadNum,
+      altura_cm: alturaNum,
+      peso_kg: pesoNum,
+      experiencia_meses: expTotal,
+    };
 
-    if (error) {
-      setFormError("Error al guardar: " + error.message);
-      setSaving(false);
-      return;
-    }
-
-    const newUser = data as UserProfile;
-    setUsers((prev) => [...prev, newUser]);
+    const updated = [...users, newUser];
+    saveProfilesToStorage(updated);
+    setUsers(updated);
     onUserChange(newUser);
     resetForm();
     setShowModal(false);
