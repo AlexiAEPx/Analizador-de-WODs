@@ -95,3 +95,14 @@ export const UBICACIONES_PREDEFINIDAS = [
   "Sótano de Casa",
   "Otro",
 ];
+
+export interface UserProfile {
+  id: string;
+  created_at: string;
+  nombre: string;
+  genero: "hombre" | "mujer";
+  edad: number;
+  altura_cm: number;
+  peso_kg: number;
+  experiencia_meses: number;
+}

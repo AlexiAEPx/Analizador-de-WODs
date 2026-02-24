@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { WOD_SYSTEM_PROMPT } from "@/lib/prompt";
+import { buildWodSystemPrompt } from "@/lib/prompt";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -8,7 +8,7 @@ const anthropic = new Anthropic({
 
 export async function POST(req: NextRequest) {
   try {
-    const { wodText, modo, imageBase64, imageMediaType } = await req.json();
+    const { wodText, modo, imageBase64, imageMediaType, userProfile } = await req.json();
 
     if (!wodText?.trim() && !imageBase64) {
       return NextResponse.json({ error: "No WOD provided" }, { status: 400 });
@@ -34,10 +34,12 @@ export async function POST(req: NextRequest) {
 
     userContent.push({ type: "text", text: textPart });
 
+    const systemPrompt = buildWodSystemPrompt(userProfile || null);
+
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 4000,
-      system: WOD_SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: [{ role: "user", content: userContent }],
     });
 

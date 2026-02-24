@@ -2,12 +2,14 @@
 
 import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { WodAnalisis, WodComparison as WodComparisonType, WodHistoryEntry, UBICACIONES_PREDEFINIDAS } from "@/lib/types";
+import { WodAnalisis, UserProfile, WodComparison as WodComparisonType, WodHistoryEntry, UBICACIONES_PREDEFINIDAS } from "@/lib/types";
 import WodResult from "@/components/WodResult";
 import WodChat from "@/components/WodChat";
 import WodComparison from "@/components/WodComparison";
+import UserSelector from "@/components/UserSelector";
 
 export default function Home() {
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [wodText, setWodText] = useState("");
   const [modo, setModo] = useState<"retrospectivo" | "prospectivo">("retrospectivo");
   const [ubicacion, setUbicacion] = useState("The Island Box");
@@ -63,6 +65,16 @@ export default function Home() {
           modo,
           imageBase64: imageData?.base64 || null,
           imageMediaType: imageData?.mediaType || null,
+          userProfile: selectedUser
+            ? {
+                nombre: selectedUser.nombre,
+                genero: selectedUser.genero,
+                edad: selectedUser.edad,
+                altura_cm: selectedUser.altura_cm,
+                peso_kg: selectedUser.peso_kg,
+                experiencia_meses: selectedUser.experiencia_meses,
+              }
+            : null,
         }),
       });
 
@@ -153,6 +165,9 @@ export default function Home() {
 
   return (
     <div className="space-y-5">
+      {/* USER SELECTOR */}
+      <UserSelector selectedUser={selectedUser} onUserChange={setSelectedUser} />
+
       {/* INPUT */}
       <div className="glass !p-8 animate-in">
         <div className="text-center mb-6">
@@ -361,7 +376,7 @@ export default function Home() {
       )}
 
       {/* CHAT */}
-      {result && <WodChat wodAnalisis={result} />}
+      {result && <WodChat wodAnalisis={result} userProfile={selectedUser} />}
     </div>
   );
 }

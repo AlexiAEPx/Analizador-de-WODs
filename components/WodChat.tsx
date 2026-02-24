@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { marked } from "marked";
-import { WodAnalisis } from "@/lib/types";
+import { WodAnalisis, UserProfile } from "@/lib/types";
 
 marked.setOptions({
   breaks: true,
@@ -16,9 +16,10 @@ interface ChatMessage {
 
 interface WodChatProps {
   wodAnalisis: WodAnalisis;
+  userProfile?: UserProfile | null;
 }
 
-export default function WodChat({ wodAnalisis }: WodChatProps) {
+export default function WodChat({ wodAnalisis, userProfile }: WodChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -53,6 +54,7 @@ export default function WodChat({ wodAnalisis }: WodChatProps) {
         body: JSON.stringify({
           messages: newMessages,
           wodAnalisis,
+          userProfile: userProfile || null,
         }),
       });
 

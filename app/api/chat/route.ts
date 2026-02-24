@@ -1,27 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { buildChatSystemPrompt } from "@/lib/prompt";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
 
-const CHAT_SYSTEM_PROMPT = `Eres un coach experto de CrossFit y analista de WODs. El usuario ya ha recibido un análisis detallado de su WOD y ahora quiere seguir charlando contigo para profundizar, hacer preguntas, o pedir consejos adicionales.
-
-Contexto del usuario: peso corporal ~64 kg, altura 168 cm, nivel intermedio-avanzado.
-
-Reglas:
-- Responde en español siempre.
-- Sé técnico, didáctico y directo. Un toque de humor sarcástico puntual está bien.
-- Usa formato Markdown para estructurar tus respuestas: **negritas**, listas con - o 1., y encabezados con ## o ### cuando sea útil.
-- Separa las ideas en párrafos claros. No escribas bloques de texto largos sin separar.
-- No repitas el análisis completo — el usuario ya lo tiene. Ve al grano con lo que pregunte.
-- Si el usuario pide que modifiques escalas, pesos, o el WOD, dale sugerencias concretas.
-- Si preguntan sobre lesiones o dolor, recomienda siempre consultar a un profesional médico, pero da contexto técnico.
-- Respuestas concisas pero completas. No escribas párrafos interminables.`;
-
 export async function POST(req: NextRequest) {
   try {
-    const { messages, wodAnalisis } = await req.json();
+    const { messages, wodAnalisis, userProfile } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
@@ -30,13 +17,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const baseChatPrompt = buildChatSystemPrompt(userProfile || null);
+
     const contextMessage = wodAnalisis
       ? `Contexto del WOD analizado:\n- Tipo: ${wodAnalisis.tipo_wod}\n- Intensidad: ${wodAnalisis.intensidad}/10\n- Enfoque: ${wodAnalisis.enfoque}\n- WOD: ${wodAnalisis.wod_transcrito}\n- Análisis: ${wodAnalisis.analisis}\n- Tip: ${wodAnalisis.tip}`
       : "";
 
     const systemPrompt = contextMessage
-      ? `${CHAT_SYSTEM_PROMPT}\n\n${contextMessage}`
-      : CHAT_SYSTEM_PROMPT;
+      ? `${baseChatPrompt}\n\n${contextMessage}`
+      : baseChatPrompt;
 
     const apiMessages = messages.map(
       (m: { role: string; content: string }) => ({
