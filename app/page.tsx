@@ -217,24 +217,43 @@ export default function Home() {
             >
               📍 Ubicación
             </label>
-            <select
-              value={ubicacion}
-              onChange={(e) => setUbicacion(e.target.value)}
-              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-xl py-2.5 px-4 text-[0.85em] text-[rgba(255,255,255,0.7)] appearance-none cursor-pointer"
-            >
-              {UBICACIONES_PREDEFINIDAS.map((u) => (
-                <option key={u} value={u} className="bg-[#14141c]">
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {UBICACIONES_PREDEFINIDAS.filter((u) => u !== "Otro").map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  onClick={() => { setUbicacion(u); setUbicacionCustom(""); }}
+                  className="py-1.5 px-3 rounded-lg text-[0.75em] font-medium transition-all border"
+                  style={{
+                    background: ubicacion === u ? "rgba(255,92,92,0.12)" : "rgba(255,255,255,0.03)",
+                    color: ubicacion === u ? "#ff5c5c" : "rgba(255,255,255,0.4)",
+                    borderColor: ubicacion === u ? "rgba(255,92,92,0.2)" : "rgba(255,255,255,0.06)",
+                  }}
+                >
                   {u}
-                </option>
+                </button>
               ))}
-            </select>
+              <button
+                type="button"
+                onClick={() => setUbicacion("Otro")}
+                className="py-1.5 px-3 rounded-lg text-[0.75em] font-medium transition-all border"
+                style={{
+                  background: ubicacion === "Otro" ? "rgba(254,202,87,0.12)" : "rgba(255,255,255,0.03)",
+                  color: ubicacion === "Otro" ? "#feca57" : "rgba(255,255,255,0.4)",
+                  borderColor: ubicacion === "Otro" ? "rgba(254,202,87,0.2)" : "rgba(255,255,255,0.06)",
+                }}
+              >
+                ✍️ Campo libre
+              </button>
+            </div>
             {ubicacion === "Otro" && (
               <input
                 type="text"
                 value={ubicacionCustom}
                 onChange={(e) => setUbicacionCustom(e.target.value)}
-                placeholder="¿Dónde?"
-                className="w-full mt-2 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-xl py-2 px-4 text-[0.85em] text-[rgba(255,255,255,0.7)] placeholder:text-[rgba(255,255,255,0.2)]"
+                placeholder="Escribe la ubicación..."
+                className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-xl py-2 px-4 text-[0.85em] text-[rgba(255,255,255,0.7)] placeholder:text-[rgba(255,255,255,0.2)]"
+                autoFocus
               />
             )}
           </div>

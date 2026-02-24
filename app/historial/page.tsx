@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { WodHistoryEntry } from "@/lib/types";
+import { WodHistoryEntry, UBICACIONES_PREDEFINIDAS } from "@/lib/types";
 import WodResult from "@/components/WodResult";
 
 const intensidadColor = (n: number) => {
@@ -18,6 +18,9 @@ export default function HistorialPage() {
   const [selected, setSelected] = useState<WodHistoryEntry | null>(null);
   const [filterUbi, setFilterUbi] = useState<string>("todas");
   const [ubicaciones, setUbicaciones] = useState<string[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editUbicacion, setEditUbicacion] = useState("");
+  const [editUbicacionCustom, setEditUbicacionCustom] = useState("");
 
   useEffect(() => {
     fetchHistory();
@@ -43,6 +46,41 @@ export default function HistorialPage() {
     await supabase.from("wod_history").delete().eq("id", id);
     setEntries((prev) => prev.filter((e) => e.id !== id));
     if (selected?.id === id) setSelected(null);
+  };
+
+  const startEditing = (entry: WodHistoryEntry) => {
+    const isPredefined = UBICACIONES_PREDEFINIDAS.filter((u) => u !== "Otro").includes(entry.ubicacion);
+    setEditingId(entry.id);
+    setEditUbicacion(isPredefined ? entry.ubicacion : "Otro");
+    setEditUbicacionCustom(isPredefined ? "" : entry.ubicacion);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditUbicacion("");
+    setEditUbicacionCustom("");
+  };
+
+  const saveLocation = async (id: string) => {
+    const newUbi = editUbicacion === "Otro" ? (editUbicacionCustom.trim() || "Otro") : editUbicacion;
+    const { error } = await supabase
+      .from("wod_history")
+      .update({ ubicacion: newUbi })
+      .eq("id", id);
+
+    if (!error) {
+      setEntries((prev) =>
+        prev.map((e) => (e.id === id ? { ...e, ubicacion: newUbi } : e))
+      );
+      if (selected?.id === id) {
+        setSelected((prev) => prev ? { ...prev, ubicacion: newUbi } : prev);
+      }
+      // Recalcular ubicaciones únicas
+      const updatedEntries = entries.map((e) => (e.id === id ? { ...e, ubicacion: newUbi } : e));
+      const ubis = Array.from(new Set(updatedEntries.map((e) => e.ubicacion)));
+      setUbicaciones(ubis);
+    }
+    cancelEditing();
   };
 
   const filtered =
@@ -75,15 +113,69 @@ export default function HistorialPage() {
 
         <div className="glass-sm animate-in">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <div>
+            <div className="flex items-center gap-2">
+              {editingId === selected.id ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className="text-[0.72em] font-medium tracking-[2px] uppercase"
+                    style={{ color: "rgba(255,255,255,0.25)" }}
+                  >
+                    📍
+                  </span>
+                  <select
+                    value={editUbicacion}
+                    onChange={(e) => setEditUbicacion(e.target.value)}
+                    className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg py-1.5 px-3 text-[0.8em] text-[rgba(255,255,255,0.7)] appearance-none cursor-pointer"
+                  >
+                    {UBICACIONES_PREDEFINIDAS.map((u) => (
+                      <option key={u} value={u} className="bg-[#14141c]">{u}</option>
+                    ))}
+                  </select>
+                  {editUbicacion === "Otro" && (
+                    <input
+                      type="text"
+                      value={editUbicacionCustom}
+                      onChange={(e) => setEditUbicacionCustom(e.target.value)}
+                      placeholder="¿Dónde?"
+                      className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-lg py-1.5 px-3 text-[0.8em] text-[rgba(255,255,255,0.7)] placeholder:text-[rgba(255,255,255,0.2)]"
+                      autoFocus
+                    />
+                  )}
+                  <button
+                    onClick={() => saveLocation(selected.id)}
+                    className="px-3 py-1.5 rounded-lg text-[0.78em] font-medium transition-colors"
+                    style={{ background: "rgba(92,216,92,0.12)", color: "#5cd85c" }}
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    onClick={cancelEditing}
+                    className="px-3 py-1.5 rounded-lg text-[0.78em] font-medium transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+                    style={{ color: "rgba(255,255,255,0.35)" }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <span
+                    className="text-[0.72em] font-medium tracking-[2px] uppercase"
+                    style={{ color: "rgba(255,255,255,0.25)" }}
+                  >
+                    📍 {selected.ubicacion}
+                  </span>
+                  <button
+                    onClick={() => startEditing(selected)}
+                    className="text-[0.75em] px-2 py-1 rounded-lg hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+                    style={{ color: "rgba(255,255,255,0.25)" }}
+                    title="Editar ubicación"
+                  >
+                    ✏️
+                  </button>
+                </>
+              )}
               <span
-                className="text-[0.72em] font-medium tracking-[2px] uppercase"
-                style={{ color: "rgba(255,255,255,0.25)" }}
-              >
-                📍 {selected.ubicacion}
-              </span>
-              <span
-                className="ml-4 text-[0.78em]"
+                className="ml-2 text-[0.78em]"
                 style={{ color: "rgba(255,255,255,0.35)" }}
               >
                 {formatDate(selected.created_at)}
@@ -248,26 +340,72 @@ export default function HistorialPage() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-1.5">
-                    <span
-                      className="text-[0.72em] font-medium tracking-[1px] uppercase"
-                      style={{ color: "rgba(255,255,255,0.25)" }}
-                    >
-                      📍 {entry.ubicacion}
-                    </span>
-                    <span
-                      className="text-[0.72em]"
-                      style={{ color: "rgba(255,255,255,0.2)" }}
-                    >
-                      {formatDate(entry.created_at)}
-                    </span>
-                  </div>
-                  <p
-                    className="text-[0.88em] font-normal truncate"
-                    style={{ color: "rgba(255,255,255,0.7)" }}
-                  >
-                    {entry.tipo_wod || entry.wod_text.slice(0, 80)}
-                  </p>
+                  {editingId === entry.id ? (
+                    <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                      <span
+                        className="text-[0.72em] font-medium tracking-[1px] uppercase"
+                        style={{ color: "rgba(255,255,255,0.25)" }}
+                      >
+                        📍
+                      </span>
+                      <select
+                        value={editUbicacion}
+                        onChange={(e) => setEditUbicacion(e.target.value)}
+                        className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg py-1.5 px-3 text-[0.78em] text-[rgba(255,255,255,0.7)] appearance-none cursor-pointer"
+                      >
+                        {UBICACIONES_PREDEFINIDAS.map((u) => (
+                          <option key={u} value={u} className="bg-[#14141c]">{u}</option>
+                        ))}
+                      </select>
+                      {editUbicacion === "Otro" && (
+                        <input
+                          type="text"
+                          value={editUbicacionCustom}
+                          onChange={(e) => setEditUbicacionCustom(e.target.value)}
+                          placeholder="¿Dónde?"
+                          className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-lg py-1.5 px-3 text-[0.78em] text-[rgba(255,255,255,0.7)] placeholder:text-[rgba(255,255,255,0.2)] max-w-[160px]"
+                          autoFocus
+                        />
+                      )}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); saveLocation(entry.id); }}
+                        className="px-2.5 py-1.5 rounded-lg text-[0.75em] font-medium transition-colors"
+                        style={{ background: "rgba(92,216,92,0.12)", color: "#5cd85c" }}
+                      >
+                        ✓
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); cancelEditing(); }}
+                        className="px-2.5 py-1.5 rounded-lg text-[0.75em] font-medium transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+                        style={{ color: "rgba(255,255,255,0.35)" }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 mb-1.5">
+                        <span
+                          className="text-[0.72em] font-medium tracking-[1px] uppercase"
+                          style={{ color: "rgba(255,255,255,0.25)" }}
+                        >
+                          📍 {entry.ubicacion}
+                        </span>
+                        <span
+                          className="text-[0.72em]"
+                          style={{ color: "rgba(255,255,255,0.2)" }}
+                        >
+                          {formatDate(entry.created_at)}
+                        </span>
+                      </div>
+                      <p
+                        className="text-[0.88em] font-normal truncate"
+                        style={{ color: "rgba(255,255,255,0.7)" }}
+                      >
+                        {entry.tipo_wod || entry.wod_text.slice(0, 80)}
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
@@ -285,6 +423,17 @@ export default function HistorialPage() {
                       </span>
                     </div>
                   )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startEditing(entry);
+                    }}
+                    className="text-[0.8em] px-2 py-1 rounded-lg hover:bg-[rgba(255,255,255,0.06)] transition-colors"
+                    style={{ color: "rgba(255,255,255,0.2)" }}
+                    title="Editar ubicación"
+                  >
+                    ✏️
+                  </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
