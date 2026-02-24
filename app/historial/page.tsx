@@ -75,7 +75,6 @@ export default function HistorialPage() {
       if (selected?.id === id) {
         setSelected((prev) => prev ? { ...prev, ubicacion: newUbi } : prev);
       }
-      // Recalcular ubicaciones únicas
       const updatedEntries = entries.map((e) => (e.id === id ? { ...e, ubicacion: newUbi } : e));
       const ubis = Array.from(new Set(updatedEntries.map((e) => e.ubicacion)));
       setUbicaciones(ubis);
@@ -105,8 +104,8 @@ export default function HistorialPage() {
       <div className="space-y-5">
         <button
           onClick={() => setSelected(null)}
-          className="glass-sm !py-2 !px-5 text-[0.82em] font-medium hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-          style={{ color: "rgba(255,255,255,0.5)" }}
+          className="glass-sm !py-2 !px-5 text-[0.82em] font-medium transition-colors"
+          style={{ color: "rgba(var(--base-rgb), 0.5)" }}
         >
           ← Volver al historial
         </button>
@@ -118,17 +117,22 @@ export default function HistorialPage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span
                     className="text-[0.72em] font-medium tracking-[2px] uppercase"
-                    style={{ color: "rgba(255,255,255,0.25)" }}
+                    style={{ color: "rgba(var(--base-rgb), 0.25)" }}
                   >
                     📍
                   </span>
                   <select
                     value={editUbicacion}
                     onChange={(e) => setEditUbicacion(e.target.value)}
-                    className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg py-1.5 px-3 text-[0.8em] text-[rgba(255,255,255,0.7)] appearance-none cursor-pointer"
+                    className="rounded-lg py-1.5 px-3 text-[0.8em] appearance-none cursor-pointer"
+                    style={{
+                      backgroundColor: "rgba(var(--base-rgb), 0.04)",
+                      border: "1px solid rgba(var(--base-rgb), 0.08)",
+                      color: "rgba(var(--base-rgb), 0.7)",
+                    }}
                   >
                     {UBICACIONES_PREDEFINIDAS.map((u) => (
-                      <option key={u} value={u} className="bg-[#14141c]">{u}</option>
+                      <option key={u} value={u} style={{ background: "var(--surface-2)" }}>{u}</option>
                     ))}
                   </select>
                   {editUbicacion === "Otro" && (
@@ -137,7 +141,12 @@ export default function HistorialPage() {
                       value={editUbicacionCustom}
                       onChange={(e) => setEditUbicacionCustom(e.target.value)}
                       placeholder="¿Dónde?"
-                      className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-lg py-1.5 px-3 text-[0.8em] text-[rgba(255,255,255,0.7)] placeholder:text-[rgba(255,255,255,0.2)]"
+                      className="rounded-lg py-1.5 px-3 text-[0.8em]"
+                      style={{
+                        backgroundColor: "rgba(var(--base-rgb), 0.03)",
+                        border: "1px solid rgba(var(--base-rgb), 0.08)",
+                        color: "rgba(var(--base-rgb), 0.7)",
+                      }}
                       autoFocus
                     />
                   )}
@@ -150,8 +159,8 @@ export default function HistorialPage() {
                   </button>
                   <button
                     onClick={cancelEditing}
-                    className="px-3 py-1.5 rounded-lg text-[0.78em] font-medium transition-colors hover:bg-[rgba(255,255,255,0.05)]"
-                    style={{ color: "rgba(255,255,255,0.35)" }}
+                    className="px-3 py-1.5 rounded-lg text-[0.78em] font-medium transition-colors"
+                    style={{ color: "rgba(var(--base-rgb), 0.35)" }}
                   >
                     Cancelar
                   </button>
@@ -160,14 +169,14 @@ export default function HistorialPage() {
                 <>
                   <span
                     className="text-[0.72em] font-medium tracking-[2px] uppercase"
-                    style={{ color: "rgba(255,255,255,0.25)" }}
+                    style={{ color: "rgba(var(--base-rgb), 0.25)" }}
                   >
                     📍 {selected.ubicacion}
                   </span>
                   <button
                     onClick={() => startEditing(selected)}
-                    className="text-[0.75em] px-2 py-1 rounded-lg hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-                    style={{ color: "rgba(255,255,255,0.25)" }}
+                    className="text-[0.75em] px-2 py-1 rounded-lg transition-colors"
+                    style={{ color: "rgba(var(--base-rgb), 0.25)" }}
                     title="Editar ubicación"
                   >
                     ✏️
@@ -176,7 +185,7 @@ export default function HistorialPage() {
               )}
               <span
                 className="ml-2 text-[0.78em]"
-                style={{ color: "rgba(255,255,255,0.35)" }}
+                style={{ color: "rgba(var(--base-rgb), 0.35)" }}
               >
                 {formatDate(selected.created_at)}
               </span>
@@ -205,13 +214,13 @@ export default function HistorialPage() {
         <div className="text-3xl mb-2">📊</div>
         <h1
           className="text-[1em] font-semibold tracking-[4px] uppercase"
-          style={{ color: "rgba(255,255,255,0.9)" }}
+          style={{ color: "rgba(var(--base-rgb), 0.9)" }}
         >
           Historial de WODs
         </h1>
         <p
           className="text-[0.82em] mt-1"
-          style={{ color: "rgba(255,255,255,0.35)" }}
+          style={{ color: "rgba(var(--base-rgb), 0.35)" }}
         >
           {entries.length} {entries.length === 1 ? "sesión" : "sesiones"}{" "}
           registradas
@@ -222,24 +231,18 @@ export default function HistorialPage() {
       {entries.length > 0 && (
         <div className="grid grid-cols-3 gap-3 animate-in animate-in-delay-1">
           <div className="glass-sm text-center">
-            <div
-              className="text-2xl font-bold"
-              style={{ color: "#ff5c5c" }}
-            >
+            <div className="text-2xl font-bold" style={{ color: "#ff5c5c" }}>
               {entries.length}
             </div>
             <div
               className="text-[0.7em] tracking-[1px] uppercase"
-              style={{ color: "rgba(255,255,255,0.25)" }}
+              style={{ color: "rgba(var(--base-rgb), 0.25)" }}
             >
               WODs
             </div>
           </div>
           <div className="glass-sm text-center">
-            <div
-              className="text-2xl font-bold"
-              style={{ color: "#ff9f43" }}
-            >
+            <div className="text-2xl font-bold" style={{ color: "#ff9f43" }}>
               {(
                 entries.reduce((s, e) => s + (e.intensidad || 0), 0) /
                 entries.length
@@ -247,21 +250,18 @@ export default function HistorialPage() {
             </div>
             <div
               className="text-[0.7em] tracking-[1px] uppercase"
-              style={{ color: "rgba(255,255,255,0.25)" }}
+              style={{ color: "rgba(var(--base-rgb), 0.25)" }}
             >
               Int. media
             </div>
           </div>
           <div className="glass-sm text-center">
-            <div
-              className="text-2xl font-bold"
-              style={{ color: "#feca57" }}
-            >
+            <div className="text-2xl font-bold" style={{ color: "#feca57" }}>
               {ubicaciones.length}
             </div>
             <div
               className="text-[0.7em] tracking-[1px] uppercase"
-              style={{ color: "rgba(255,255,255,0.25)" }}
+              style={{ color: "rgba(var(--base-rgb), 0.25)" }}
             >
               Ubicaciones
             </div>
@@ -279,11 +279,11 @@ export default function HistorialPage() {
               background:
                 filterUbi === "todas"
                   ? "rgba(255,92,92,0.12)"
-                  : "rgba(255,255,255,0.03)",
+                  : "rgba(var(--base-rgb), 0.03)",
               color:
                 filterUbi === "todas"
                   ? "#ff5c5c"
-                  : "rgba(255,255,255,0.4)",
+                  : "rgba(var(--base-rgb), 0.4)",
             }}
           >
             Todas
@@ -297,11 +297,11 @@ export default function HistorialPage() {
                 background:
                   filterUbi === u
                     ? "rgba(255,92,92,0.12)"
-                    : "rgba(255,255,255,0.03)",
+                    : "rgba(var(--base-rgb), 0.03)",
                 color:
                   filterUbi === u
                     ? "#ff5c5c"
-                    : "rgba(255,255,255,0.4)",
+                    : "rgba(var(--base-rgb), 0.4)",
               }}
             >
               {u}
@@ -318,12 +318,12 @@ export default function HistorialPage() {
             <span className="loader-dot inline-block w-2 h-2 rounded-full bg-sem-rojo" />
             <span className="loader-dot inline-block w-2 h-2 rounded-full bg-sem-rojo" />
           </div>
-          <span style={{ color: "rgba(255,255,255,0.35)" }}>Cargando...</span>
+          <span style={{ color: "rgba(var(--base-rgb), 0.35)" }}>Cargando...</span>
         </div>
       ) : filtered.length === 0 ? (
         <div className="glass text-center py-12">
           <div className="text-3xl mb-3">🏋️</div>
-          <p style={{ color: "rgba(255,255,255,0.4)" }}>
+          <p style={{ color: "rgba(var(--base-rgb), 0.4)" }}>
             {entries.length === 0
               ? "Aún no hay WODs registrados. ¡Analiza tu primer WOD!"
               : "No hay WODs en esta ubicación."}
@@ -334,8 +334,11 @@ export default function HistorialPage() {
           {filtered.map((entry, i) => (
             <div
               key={entry.id}
-              className="glass hover:bg-[rgba(255,255,255,0.05)] transition-all cursor-pointer animate-in"
-              style={{ animationDelay: `${Math.min(i * 0.05, 0.4)}s`, opacity: 0 }}
+              className="glass transition-all cursor-pointer animate-in"
+              style={{
+                animationDelay: `${Math.min(i * 0.05, 0.4)}s`,
+                opacity: 0,
+              }}
               onClick={() => setSelected(entry)}
             >
               <div className="flex items-start justify-between gap-4">
@@ -344,17 +347,22 @@ export default function HistorialPage() {
                     <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
                       <span
                         className="text-[0.72em] font-medium tracking-[1px] uppercase"
-                        style={{ color: "rgba(255,255,255,0.25)" }}
+                        style={{ color: "rgba(var(--base-rgb), 0.25)" }}
                       >
                         📍
                       </span>
                       <select
                         value={editUbicacion}
                         onChange={(e) => setEditUbicacion(e.target.value)}
-                        className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.08)] rounded-lg py-1.5 px-3 text-[0.78em] text-[rgba(255,255,255,0.7)] appearance-none cursor-pointer"
+                        className="rounded-lg py-1.5 px-3 text-[0.78em] appearance-none cursor-pointer"
+                        style={{
+                          backgroundColor: "rgba(var(--base-rgb), 0.04)",
+                          border: "1px solid rgba(var(--base-rgb), 0.08)",
+                          color: "rgba(var(--base-rgb), 0.7)",
+                        }}
                       >
                         {UBICACIONES_PREDEFINIDAS.map((u) => (
-                          <option key={u} value={u} className="bg-[#14141c]">{u}</option>
+                          <option key={u} value={u} style={{ background: "var(--surface-2)" }}>{u}</option>
                         ))}
                       </select>
                       {editUbicacion === "Otro" && (
@@ -363,7 +371,12 @@ export default function HistorialPage() {
                           value={editUbicacionCustom}
                           onChange={(e) => setEditUbicacionCustom(e.target.value)}
                           placeholder="¿Dónde?"
-                          className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-lg py-1.5 px-3 text-[0.78em] text-[rgba(255,255,255,0.7)] placeholder:text-[rgba(255,255,255,0.2)] max-w-[160px]"
+                          className="rounded-lg py-1.5 px-3 text-[0.78em] max-w-[160px]"
+                          style={{
+                            backgroundColor: "rgba(var(--base-rgb), 0.03)",
+                            border: "1px solid rgba(var(--base-rgb), 0.08)",
+                            color: "rgba(var(--base-rgb), 0.7)",
+                          }}
                           autoFocus
                         />
                       )}
@@ -376,8 +389,8 @@ export default function HistorialPage() {
                       </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); cancelEditing(); }}
-                        className="px-2.5 py-1.5 rounded-lg text-[0.75em] font-medium transition-colors hover:bg-[rgba(255,255,255,0.05)]"
-                        style={{ color: "rgba(255,255,255,0.35)" }}
+                        className="px-2.5 py-1.5 rounded-lg text-[0.75em] font-medium transition-colors"
+                        style={{ color: "rgba(var(--base-rgb), 0.35)" }}
                       >
                         ✕
                       </button>
@@ -387,20 +400,20 @@ export default function HistorialPage() {
                       <div className="flex items-center gap-3 mb-1.5">
                         <span
                           className="text-[0.72em] font-medium tracking-[1px] uppercase"
-                          style={{ color: "rgba(255,255,255,0.25)" }}
+                          style={{ color: "rgba(var(--base-rgb), 0.25)" }}
                         >
                           📍 {entry.ubicacion}
                         </span>
                         <span
                           className="text-[0.72em]"
-                          style={{ color: "rgba(255,255,255,0.2)" }}
+                          style={{ color: "rgba(var(--base-rgb), 0.2)" }}
                         >
                           {formatDate(entry.created_at)}
                         </span>
                       </div>
                       <p
                         className="text-[0.88em] font-normal truncate"
-                        style={{ color: "rgba(255,255,255,0.7)" }}
+                        style={{ color: "rgba(var(--base-rgb), 0.7)" }}
                       >
                         {entry.tipo_wod || entry.wod_text.slice(0, 80)}
                       </p>
@@ -417,7 +430,7 @@ export default function HistorialPage() {
                       {entry.intensidad}
                       <span
                         className="text-[0.45em]"
-                        style={{ color: "rgba(255,255,255,0.2)" }}
+                        style={{ color: "rgba(var(--base-rgb), 0.2)" }}
                       >
                         /10
                       </span>
@@ -428,8 +441,8 @@ export default function HistorialPage() {
                       e.stopPropagation();
                       startEditing(entry);
                     }}
-                    className="text-[0.8em] px-2 py-1 rounded-lg hover:bg-[rgba(255,255,255,0.06)] transition-colors"
-                    style={{ color: "rgba(255,255,255,0.2)" }}
+                    className="text-[0.8em] px-2 py-1 rounded-lg transition-colors"
+                    style={{ color: "rgba(var(--base-rgb), 0.2)" }}
                     title="Editar ubicación"
                   >
                     ✏️
@@ -440,7 +453,7 @@ export default function HistorialPage() {
                       deleteEntry(entry.id);
                     }}
                     className="text-[0.8em] px-2 py-1 rounded-lg hover:bg-[rgba(255,92,92,0.1)] transition-colors"
-                    style={{ color: "rgba(255,255,255,0.2)" }}
+                    style={{ color: "rgba(var(--base-rgb), 0.2)" }}
                     title="Eliminar"
                   >
                     🗑

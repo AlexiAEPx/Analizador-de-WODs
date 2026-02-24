@@ -114,7 +114,6 @@ export default function Home() {
     setNoAyer(false);
 
     try {
-      // Buscar el WOD de ayer en Supabase
       const now = new Date();
       const yesterdayStart = new Date(now);
       yesterdayStart.setDate(yesterdayStart.getDate() - 1);
@@ -141,7 +140,6 @@ export default function Home() {
       const ayer = data[0] as WodHistoryEntry;
       setAyerEntry(ayer);
 
-      // Llamar a la API de comparación
       const resp = await fetch("/api/compare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -174,13 +172,13 @@ export default function Home() {
           <div className="text-4xl mb-2">🏋️</div>
           <h1
             className="text-[1.1em] font-semibold tracking-[4px] uppercase"
-            style={{ color: "rgba(255,255,255,0.9)" }}
+            style={{ color: "rgba(var(--base-rgb), 0.9)" }}
           >
             Análisis de WOD
           </h1>
           <p
             className="text-[0.82em] mt-1"
-            style={{ color: "rgba(255,255,255,0.35)" }}
+            style={{ color: "rgba(var(--base-rgb), 0.35)" }}
           >
             Escribe el WOD o sube una foto de la pizarra
           </p>
@@ -191,7 +189,12 @@ export default function Home() {
           value={wodText}
           onChange={(e) => setWodText(e.target.value)}
           placeholder="Describe el WOD aquí... ej: 5 rounds de 10 thrusters @ 40kg + 15 pull-ups"
-          className="w-full min-h-[120px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-xl p-4 text-[rgba(255,255,255,0.85)] text-[0.9em] font-light resize-y leading-relaxed placeholder:text-[rgba(255,255,255,0.2)]"
+          className="w-full min-h-[120px] rounded-xl p-4 text-[0.9em] font-light resize-y leading-relaxed"
+          style={{
+            backgroundColor: "rgba(var(--base-rgb), 0.03)",
+            border: "1px solid rgba(var(--base-rgb), 0.08)",
+            color: "rgba(var(--base-rgb), 0.85)",
+          }}
         />
 
         {/* Image drop */}
@@ -199,10 +202,11 @@ export default function Home() {
           onDrop={handleDrop}
           onDragOver={(e) => e.preventDefault()}
           onClick={() => fileInputRef.current?.click()}
-          className="mt-3 p-4 rounded-xl border border-dashed border-[rgba(255,255,255,0.1)] text-center cursor-pointer text-[0.82em] hover:bg-[rgba(255,255,255,0.02)] transition-colors"
+          className="mt-3 p-4 rounded-xl border border-dashed text-center cursor-pointer text-[0.82em] transition-colors"
           style={{
+            borderColor: "rgba(var(--base-rgb), 0.1)",
             background: imageData ? "rgba(92,216,92,0.04)" : "transparent",
-            color: "rgba(255,255,255,0.35)",
+            color: "rgba(var(--base-rgb), 0.35)",
           }}
         >
           <input
@@ -228,7 +232,7 @@ export default function Home() {
           <div>
             <label
               className="block text-[0.7em] font-medium tracking-[2px] uppercase mb-2"
-              style={{ color: "rgba(255,255,255,0.25)" }}
+              style={{ color: "rgba(var(--base-rgb), 0.25)" }}
             >
               📍 Ubicación
             </label>
@@ -240,9 +244,9 @@ export default function Home() {
                   onClick={() => { setUbicacion(u); setUbicacionCustom(""); }}
                   className="py-1.5 px-3 rounded-lg text-[0.75em] font-medium transition-all border"
                   style={{
-                    background: ubicacion === u ? "rgba(255,92,92,0.12)" : "rgba(255,255,255,0.03)",
-                    color: ubicacion === u ? "#ff5c5c" : "rgba(255,255,255,0.4)",
-                    borderColor: ubicacion === u ? "rgba(255,92,92,0.2)" : "rgba(255,255,255,0.06)",
+                    background: ubicacion === u ? "rgba(255,92,92,0.12)" : "rgba(var(--base-rgb), 0.03)",
+                    color: ubicacion === u ? "#ff5c5c" : "rgba(var(--base-rgb), 0.4)",
+                    borderColor: ubicacion === u ? "rgba(255,92,92,0.2)" : "rgba(var(--base-rgb), 0.06)",
                   }}
                 >
                   {u}
@@ -253,9 +257,9 @@ export default function Home() {
                 onClick={() => setUbicacion("Otro")}
                 className="py-1.5 px-3 rounded-lg text-[0.75em] font-medium transition-all border"
                 style={{
-                  background: ubicacion === "Otro" ? "rgba(254,202,87,0.12)" : "rgba(255,255,255,0.03)",
-                  color: ubicacion === "Otro" ? "#feca57" : "rgba(255,255,255,0.4)",
-                  borderColor: ubicacion === "Otro" ? "rgba(254,202,87,0.2)" : "rgba(255,255,255,0.06)",
+                  background: ubicacion === "Otro" ? "rgba(254,202,87,0.12)" : "rgba(var(--base-rgb), 0.03)",
+                  color: ubicacion === "Otro" ? "#feca57" : "rgba(var(--base-rgb), 0.4)",
+                  borderColor: ubicacion === "Otro" ? "rgba(254,202,87,0.2)" : "rgba(var(--base-rgb), 0.06)",
                 }}
               >
                 ✍️ Campo libre
@@ -267,7 +271,12 @@ export default function Home() {
                 value={ubicacionCustom}
                 onChange={(e) => setUbicacionCustom(e.target.value)}
                 placeholder="Escribe la ubicación..."
-                className="w-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-xl py-2 px-4 text-[0.85em] text-[rgba(255,255,255,0.7)] placeholder:text-[rgba(255,255,255,0.2)]"
+                className="w-full rounded-xl py-2 px-4 text-[0.85em]"
+                style={{
+                  backgroundColor: "rgba(var(--base-rgb), 0.03)",
+                  border: "1px solid rgba(var(--base-rgb), 0.08)",
+                  color: "rgba(var(--base-rgb), 0.7)",
+                }}
                 autoFocus
               />
             )}
@@ -277,11 +286,17 @@ export default function Home() {
           <div>
             <label
               className="block text-[0.7em] font-medium tracking-[2px] uppercase mb-2"
-              style={{ color: "rgba(255,255,255,0.25)" }}
+              style={{ color: "rgba(var(--base-rgb), 0.25)" }}
             >
               ⏱ Modo
             </label>
-            <div className="flex rounded-xl border border-[rgba(255,255,255,0.06)] overflow-hidden bg-[rgba(255,255,255,0.03)]">
+            <div
+              className="flex rounded-xl overflow-hidden"
+              style={{
+                border: "1px solid rgba(var(--base-rgb), 0.06)",
+                background: "rgba(var(--base-rgb), 0.03)",
+              }}
+            >
               {(["retrospectivo", "prospectivo"] as const).map((m) => (
                 <button
                   key={m}
@@ -291,7 +306,7 @@ export default function Home() {
                     background:
                       modo === m ? "rgba(255,92,92,0.12)" : "transparent",
                     color:
-                      modo === m ? "#ff5c5c" : "rgba(255,255,255,0.35)",
+                      modo === m ? "#ff5c5c" : "rgba(var(--base-rgb), 0.35)",
                   }}
                 >
                   {m === "retrospectivo" ? "✅ Ya hecho" : "🔜 Por hacer"}
@@ -308,9 +323,9 @@ export default function Home() {
           className="w-full mt-5 py-3.5 rounded-xl font-semibold text-[0.88em] tracking-[1px] uppercase transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           style={{
             background: loading
-              ? "rgba(255,255,255,0.04)"
+              ? "rgba(var(--base-rgb), 0.04)"
               : "linear-gradient(135deg, rgba(255,92,92,0.18), rgba(255,92,92,0.08))",
-            color: loading ? "rgba(255,255,255,0.3)" : "#ff5c5c",
+            color: loading ? "rgba(var(--base-rgb), 0.3)" : "#ff5c5c",
             border: "1px solid rgba(255,92,92,0.15)",
           }}
         >
