@@ -19,8 +19,10 @@ export default function HistorialPage() {
   const [filterUbi, setFilterUbi] = useState<string>("todas");
   const [ubicaciones, setUbicaciones] = useState<string[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editField, setEditField] = useState<"ubicacion" | "nombre">("ubicacion");
   const [editUbicacion, setEditUbicacion] = useState("");
   const [editUbicacionCustom, setEditUbicacionCustom] = useState("");
+  const [editNombreWod, setEditNombreWod] = useState("");
 
   useEffect(() => {
     fetchHistory();
@@ -48,17 +50,26 @@ export default function HistorialPage() {
     if (selected?.id === id) setSelected(null);
   };
 
-  const startEditing = (entry: WodHistoryEntry) => {
+  const startEditingUbicacion = (entry: WodHistoryEntry) => {
     const isPredefined = UBICACIONES_PREDEFINIDAS.filter((u) => u !== "Otro").includes(entry.ubicacion);
     setEditingId(entry.id);
+    setEditField("ubicacion");
     setEditUbicacion(isPredefined ? entry.ubicacion : "Otro");
     setEditUbicacionCustom(isPredefined ? "" : entry.ubicacion);
   };
 
+  const startEditingNombre = (entry: WodHistoryEntry) => {
+    setEditingId(entry.id);
+    setEditField("nombre");
+    setEditNombreWod(entry.nombre_wod || "");
+  };
+
   const cancelEditing = () => {
     setEditingId(null);
+    setEditField("ubicacion");
     setEditUbicacion("");
     setEditUbicacionCustom("");
+    setEditNombreWod("");
   };
 
   const saveLocation = async (id: string) => {
@@ -78,6 +89,24 @@ export default function HistorialPage() {
       const updatedEntries = entries.map((e) => (e.id === id ? { ...e, ubicacion: newUbi } : e));
       const ubis = Array.from(new Set(updatedEntries.map((e) => e.ubicacion)));
       setUbicaciones(ubis);
+    }
+    cancelEditing();
+  };
+
+  const saveNombreWod = async (id: string) => {
+    const newNombre = editNombreWod.trim() || null;
+    const { error } = await supabase
+      .from("wod_history")
+      .update({ nombre_wod: newNombre })
+      .eq("id", id);
+
+    if (!error) {
+      setEntries((prev) =>
+        prev.map((e) => (e.id === id ? { ...e, nombre_wod: newNombre } : e))
+      );
+      if (selected?.id === id) {
+        setSelected((prev) => prev ? { ...prev, nombre_wod: newNombre } : prev);
+      }
     }
     cancelEditing();
   };
@@ -111,9 +140,67 @@ export default function HistorialPage() {
         </button>
 
         <div className="glass-sm animate-in">
+          {/* Nombre del WOD */}
+          <div className="flex items-center gap-2 mb-3">
+            {editingId === selected.id && editField === "nombre" ? (
+              <div className="flex items-center gap-2 flex-wrap flex-1">
+                <span
+                  className="text-[0.72em] font-medium tracking-[2px] uppercase"
+                  style={{ color: "rgba(var(--base-rgb), 0.25)" }}
+                >
+                  🏷
+                </span>
+                <input
+                  type="text"
+                  value={editNombreWod}
+                  onChange={(e) => setEditNombreWod(e.target.value)}
+                  placeholder="Nombre del WOD..."
+                  className="flex-1 rounded-lg py-1.5 px-3 text-[0.85em]"
+                  style={{
+                    backgroundColor: "rgba(var(--base-rgb), 0.03)",
+                    border: "1px solid rgba(var(--base-rgb), 0.08)",
+                    color: "rgba(var(--base-rgb), 0.7)",
+                  }}
+                  autoFocus
+                />
+                <button
+                  onClick={() => saveNombreWod(selected.id)}
+                  className="px-3 py-1.5 rounded-lg text-[0.78em] font-medium transition-colors"
+                  style={{ background: "rgba(92,216,92,0.12)", color: "#5cd85c" }}
+                >
+                  Guardar
+                </button>
+                <button
+                  onClick={cancelEditing}
+                  className="px-3 py-1.5 rounded-lg text-[0.78em] font-medium transition-colors"
+                  style={{ color: "rgba(var(--base-rgb), 0.35)" }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <>
+                <span
+                  className="text-[0.92em] font-semibold"
+                  style={{ color: "rgba(var(--base-rgb), 0.8)" }}
+                >
+                  {selected.nombre_wod || selected.tipo_wod || "WOD sin nombre"}
+                </span>
+                <button
+                  onClick={() => startEditingNombre(selected)}
+                  className="text-[0.75em] px-2 py-1 rounded-lg transition-colors"
+                  style={{ color: "rgba(var(--base-rgb), 0.25)" }}
+                  title="Editar nombre del WOD"
+                >
+                  ✏️
+                </button>
+              </>
+            )}
+          </div>
+
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              {editingId === selected.id ? (
+              {editingId === selected.id && editField === "ubicacion" ? (
                 <div className="flex items-center gap-2 flex-wrap">
                   <span
                     className="text-[0.72em] font-medium tracking-[2px] uppercase"
@@ -174,7 +261,7 @@ export default function HistorialPage() {
                     📍 {selected.ubicacion}
                   </span>
                   <button
-                    onClick={() => startEditing(selected)}
+                    onClick={() => startEditingUbicacion(selected)}
                     className="text-[0.75em] px-2 py-1 rounded-lg transition-colors"
                     style={{ color: "rgba(var(--base-rgb), 0.25)" }}
                     title="Editar ubicación"
@@ -343,7 +430,43 @@ export default function HistorialPage() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  {editingId === entry.id ? (
+                  {editingId === entry.id && editField === "nombre" ? (
+                    <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                      <span
+                        className="text-[0.72em] font-medium tracking-[1px] uppercase"
+                        style={{ color: "rgba(var(--base-rgb), 0.25)" }}
+                      >
+                        🏷
+                      </span>
+                      <input
+                        type="text"
+                        value={editNombreWod}
+                        onChange={(e) => setEditNombreWod(e.target.value)}
+                        placeholder="Nombre del WOD..."
+                        className="flex-1 min-w-[120px] rounded-lg py-1.5 px-3 text-[0.78em]"
+                        style={{
+                          backgroundColor: "rgba(var(--base-rgb), 0.03)",
+                          border: "1px solid rgba(var(--base-rgb), 0.08)",
+                          color: "rgba(var(--base-rgb), 0.7)",
+                        }}
+                        autoFocus
+                      />
+                      <button
+                        onClick={(e) => { e.stopPropagation(); saveNombreWod(entry.id); }}
+                        className="px-2.5 py-1.5 rounded-lg text-[0.75em] font-medium transition-colors"
+                        style={{ background: "rgba(92,216,92,0.12)", color: "#5cd85c" }}
+                      >
+                        ✓
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); cancelEditing(); }}
+                        className="px-2.5 py-1.5 rounded-lg text-[0.75em] font-medium transition-colors"
+                        style={{ color: "rgba(var(--base-rgb), 0.35)" }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : editingId === entry.id && editField === "ubicacion" ? (
                     <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
                       <span
                         className="text-[0.72em] font-medium tracking-[1px] uppercase"
@@ -398,6 +521,14 @@ export default function HistorialPage() {
                   ) : (
                     <>
                       <div className="flex items-center gap-3 mb-1.5">
+                        {entry.nombre_wod && (
+                          <span
+                            className="text-[0.78em] font-semibold"
+                            style={{ color: "rgba(var(--base-rgb), 0.7)" }}
+                          >
+                            🏷 {entry.nombre_wod}
+                          </span>
+                        )}
                         <span
                           className="text-[0.72em] font-medium tracking-[1px] uppercase"
                           style={{ color: "rgba(var(--base-rgb), 0.25)" }}
@@ -439,7 +570,18 @@ export default function HistorialPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      startEditing(entry);
+                      startEditingNombre(entry);
+                    }}
+                    className="text-[0.8em] px-2 py-1 rounded-lg transition-colors"
+                    style={{ color: "rgba(var(--base-rgb), 0.2)" }}
+                    title="Editar nombre del WOD"
+                  >
+                    🏷
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startEditingUbicacion(entry);
                     }}
                     className="text-[0.8em] px-2 py-1 rounded-lg transition-colors"
                     style={{ color: "rgba(var(--base-rgb), 0.2)" }}

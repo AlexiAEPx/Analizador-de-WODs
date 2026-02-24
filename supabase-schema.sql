@@ -29,6 +29,7 @@ CREATE TABLE wod_history (
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
   
   -- Input
+  nombre_wod TEXT,
   wod_text TEXT NOT NULL,
   ubicacion TEXT NOT NULL DEFAULT 'Sin especificar',
   modo TEXT NOT NULL DEFAULT 'retrospectivo' CHECK (modo IN ('retrospectivo', 'prospectivo')),

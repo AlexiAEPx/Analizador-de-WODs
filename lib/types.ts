@@ -43,6 +43,7 @@ export interface WodAnalisis {
 export interface WodHistoryEntry {
   id: string;
   created_at: string;
+  nombre_wod: string | null;
   wod_text: string;
   ubicacion: string;
   modo: "retrospectivo" | "prospectivo";
