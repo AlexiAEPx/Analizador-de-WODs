@@ -3,6 +3,26 @@
 -- Ejecutar en Supabase SQL Editor
 -- ==============================================
 
+-- Tabla de perfiles de usuario
+CREATE TABLE user_profiles (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+  nombre TEXT NOT NULL,
+  genero TEXT NOT NULL CHECK (genero IN ('hombre', 'mujer')),
+  edad INTEGER NOT NULL CHECK (edad BETWEEN 10 AND 100),
+  altura_cm NUMERIC(5,1) NOT NULL CHECK (altura_cm BETWEEN 100 AND 250),
+  peso_kg NUMERIC(5,1) NOT NULL CHECK (peso_kg BETWEEN 30 AND 250),
+  experiencia_meses INTEGER NOT NULL DEFAULT 0 CHECK (experiencia_meses >= 0)
+);
+
+-- RLS: acceso público (app personal, sin auth)
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow all access on user_profiles" ON user_profiles
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
 -- Tabla principal de historial de WODs
 CREATE TABLE wod_history (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

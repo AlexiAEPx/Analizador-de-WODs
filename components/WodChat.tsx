@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { WodAnalisis } from "@/lib/types";
+import { WodAnalisis, UserProfile } from "@/lib/types";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -10,9 +10,10 @@ interface ChatMessage {
 
 interface WodChatProps {
   wodAnalisis: WodAnalisis;
+  userProfile?: UserProfile | null;
 }
 
-export default function WodChat({ wodAnalisis }: WodChatProps) {
+export default function WodChat({ wodAnalisis, userProfile }: WodChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,6 +48,7 @@ export default function WodChat({ wodAnalisis }: WodChatProps) {
         body: JSON.stringify({
           messages: newMessages,
           wodAnalisis,
+          userProfile: userProfile || null,
         }),
       });
 
