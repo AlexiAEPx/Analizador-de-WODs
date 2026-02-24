@@ -59,6 +59,34 @@ export const COLOR_MAP: Record<SemaforoColor, { text: string; fill: string }> = 
   verde: { text: "#5cd85c", fill: "linear-gradient(90deg, #5cd85c, #44b344)" },
 };
 
+export interface MusculoOverlap {
+  nombre: string;
+  ayer: number;
+  hoy: number;
+  color_ayer: SemaforoColor;
+  color_hoy: SemaforoColor;
+  sobrecarga: boolean;
+}
+
+export interface PatronOverlap {
+  nombre: string;
+  ayer: number;
+  hoy: number;
+  color_ayer: SemaforoColor;
+  color_hoy: SemaforoColor;
+}
+
+export interface WodComparison {
+  intensidad_ayer: number;
+  intensidad_hoy: number;
+  intensidad_acumulada: number;
+  nivel_sobrecarga: "baja" | "moderada" | "alta" | "critica";
+  musculos_sobrecargados: MusculoOverlap[];
+  patrones_repetidos: PatronOverlap[];
+  veredicto: string;
+  recomendacion: string;
+}
+
 export const UBICACIONES_PREDEFINIDAS = [
   "The Island Box",
   "Enjoy",

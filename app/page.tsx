@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
-import { WodAnalisis, UBICACIONES_PREDEFINIDAS } from "@/lib/types";
+import { WodAnalisis, WodComparison as WodComparisonType, WodHistoryEntry, UBICACIONES_PREDEFINIDAS } from "@/lib/types";
 import WodResult from "@/components/WodResult";
 import WodChat from "@/components/WodChat";
+import WodComparison from "@/components/WodComparison";
 
 export default function Home() {
   const [wodText, setWodText] = useState("");
@@ -17,6 +18,10 @@ export default function Home() {
   const [result, setResult] = useState<WodAnalisis | null>(null);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [comparison, setComparison] = useState<WodComparisonType | null>(null);
+  const [comparing, setComparing] = useState(false);
+  const [ayerEntry, setAyerEntry] = useState<WodHistoryEntry | null>(null);
+  const [noAyer, setNoAyer] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImage = useCallback((file: File) => {
@@ -45,6 +50,9 @@ export default function Home() {
     setError("");
     setResult(null);
     setSaved(false);
+    setComparison(null);
+    setAyerEntry(null);
+    setNoAyer(false);
 
     try {
       const resp = await fetch("/api/analyze", {
@@ -84,6 +92,62 @@ export default function Home() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const compareWithYesterday = async () => {
+    if (!result) return;
+    setComparing(true);
+    setComparison(null);
+    setNoAyer(false);
+
+    try {
+      // Buscar el WOD de ayer en Supabase
+      const now = new Date();
+      const yesterdayStart = new Date(now);
+      yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+      yesterdayStart.setHours(0, 0, 0, 0);
+      const yesterdayEnd = new Date(now);
+      yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
+      yesterdayEnd.setHours(23, 59, 59, 999);
+
+      const { data, error: dbError } = await supabase
+        .from("wod_history")
+        .select("*")
+        .gte("created_at", yesterdayStart.toISOString())
+        .lte("created_at", yesterdayEnd.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (dbError) throw dbError;
+
+      if (!data || data.length === 0) {
+        setNoAyer(true);
+        return;
+      }
+
+      const ayer = data[0] as WodHistoryEntry;
+      setAyerEntry(ayer);
+
+      // Llamar a la API de comparación
+      const resp = await fetch("/api/compare", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          analisisHoy: result,
+          analisisAyer: ayer.analisis,
+        }),
+      });
+
+      if (!resp.ok) throw new Error("Error en la comparación");
+
+      const compData: WodComparisonType = await resp.json();
+      setComparison(compData);
+    } catch (err: any) {
+      console.error("Compare error:", err);
+      setError("Error al comparar con el WOD de ayer.");
+    } finally {
+      setComparing(false);
     }
   };
 
@@ -240,6 +304,42 @@ export default function Home() {
 
       {/* RESULT */}
       {result && <WodResult result={result} />}
+
+      {/* COMPARE WITH YESTERDAY */}
+      {result && !comparison && (
+        <div className="animate-in animate-in-delay-8">
+          <button
+            onClick={compareWithYesterday}
+            disabled={comparing}
+            className="w-full py-3.5 rounded-xl font-semibold text-[0.88em] tracking-[1px] uppercase transition-all compare-btn disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {comparing ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="loader-dot inline-block w-2 h-2 rounded-full bg-sem-amarillo" />
+                <span className="loader-dot inline-block w-2 h-2 rounded-full bg-sem-amarillo" />
+                <span className="loader-dot inline-block w-2 h-2 rounded-full bg-sem-amarillo" />
+                <span className="ml-2">Comparando...</span>
+              </span>
+            ) : (
+              "🔄 Comparar con el WOD de ayer"
+            )}
+          </button>
+          {noAyer && (
+            <p className="mt-3 text-sem-amarillo text-[0.82em] text-center opacity-70">
+              No se encontró ningún WOD registrado ayer. Necesitas tener un WOD guardado del día anterior.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* COMPARISON RESULT */}
+      {comparison && ayerEntry && (
+        <WodComparison
+          comparison={comparison}
+          ayerWodText={ayerEntry.analisis?.wod_transcrito || ayerEntry.wod_text}
+          ayerUbicacion={ayerEntry.ubicacion}
+        />
+      )}
 
       {/* CHAT */}
       {result && <WodChat wodAnalisis={result} />}
