@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { marked } from "marked";
 import { WodAnalisis, UserProfile } from "@/lib/types";
+
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+});
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -156,8 +162,8 @@ export default function WodChat({ wodAnalisis, userProfile }: WodChatProps) {
           >
             {msg.role === "assistant" ? (
               <div
-                className="analisis-text"
-                dangerouslySetInnerHTML={{ __html: msg.content }}
+                className="chat-markdown"
+                dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) as string }}
               />
             ) : (
               <span>{msg.content}</span>
