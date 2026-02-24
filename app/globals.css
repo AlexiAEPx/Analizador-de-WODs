@@ -231,6 +231,17 @@ textarea:focus, input:focus, select:focus {
   margin-bottom: 0;
 }
 
+/* Compare button */
+.compare-btn {
+  background: linear-gradient(135deg, rgba(254,202,87,0.1), rgba(255,159,67,0.06));
+  border: 1px dashed rgba(254,202,87,0.25);
+  color: #feca57;
+}
+.compare-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(254,202,87,0.15), rgba(255,159,67,0.1));
+  border-color: rgba(254,202,87,0.4);
+}
+
 /* Chat suggestions */
 .chat-suggestion {
   padding: 6px 14px;
