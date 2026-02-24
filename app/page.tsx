@@ -174,7 +174,7 @@ export default function Home() {
             className="text-[1.1em] font-semibold tracking-[4px] uppercase"
             style={{ color: "rgba(var(--base-rgb), 0.9)" }}
           >
-            Análisis de WOD
+            Análisis de <span className="tracking-normal">WOD</span>
           </h1>
           <p
             className="text-[0.82em] mt-1"

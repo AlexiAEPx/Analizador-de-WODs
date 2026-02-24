@@ -216,7 +216,7 @@ export default function HistorialPage() {
           className="text-[1em] font-semibold tracking-[4px] uppercase"
           style={{ color: "rgba(var(--base-rgb), 0.9)" }}
         >
-          Historial de WODs
+          Historial de <span className="tracking-normal">WODs</span>
         </h1>
         <p
           className="text-[0.82em] mt-1"
