@@ -100,7 +100,7 @@ export default function WodChat({ wodAnalisis }: WodChatProps) {
       <div className="flex items-center justify-between mb-4">
         <h2
           className="text-[0.72em] font-semibold tracking-[3px] uppercase"
-          style={{ color: "rgba(255,255,255,0.3)" }}
+          style={{ color: "rgba(var(--base-rgb), 0.3)" }}
         >
           💬 Chat sobre tu WOD
         </h2>
@@ -108,8 +108,8 @@ export default function WodChat({ wodAnalisis }: WodChatProps) {
           onClick={() => setIsOpen(false)}
           className="text-[0.75em] px-3 py-1 rounded-lg transition-colors"
           style={{
-            color: "rgba(255,255,255,0.3)",
-            background: "rgba(255,255,255,0.04)",
+            color: "rgba(var(--base-rgb), 0.3)",
+            background: "rgba(var(--base-rgb), 0.04)",
           }}
         >
           Minimizar
@@ -122,7 +122,7 @@ export default function WodChat({ wodAnalisis }: WodChatProps) {
           <div className="text-center py-8">
             <p
               className="text-[0.85em] mb-3"
-              style={{ color: "rgba(255,255,255,0.25)" }}
+              style={{ color: "rgba(var(--base-rgb), 0.25)" }}
             >
               Pregunta lo que quieras sobre el WOD
             </p>

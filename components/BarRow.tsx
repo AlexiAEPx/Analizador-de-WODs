@@ -26,7 +26,10 @@ export default function BarRow({ nombre, color, nivel, suffix }: BarRowProps) {
       >
         {nombre}
       </span>
-      <div className="flex-1 h-2 rounded-full overflow-hidden bg-[rgba(255,255,255,0.05)]">
+      <div
+        className="flex-1 h-2 rounded-full overflow-hidden"
+        style={{ background: "rgba(var(--base-rgb), 0.05)" }}
+      >
         <div
           className="h-full rounded-full transition-all duration-500 ease-out"
           style={{
