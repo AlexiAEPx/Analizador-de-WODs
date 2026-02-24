@@ -31,7 +31,7 @@ export default function RootLayout({
                 className="text-[0.7em] font-semibold tracking-[4px] uppercase"
                 style={{ color: "rgba(var(--base-rgb), 0.5)" }}
               >
-                🏋️ WOD Analyzer
+                🏋️ <span className="tracking-normal">WOD</span> Analyzer
               </Link>
               <div className="flex gap-1 items-center">
                 <Link
